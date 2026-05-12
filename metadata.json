@@ -1,7 +1,7 @@
 {
   "owner": "simple-elf",
   "name": "allure-report-action",
-  "visibility": "internal",
+  "visibility": "public",
   "description": "Generate Allure Report with history",
   "block_publish": false
 }
