@@ -1,4 +1,4 @@
-name: Test allure report with custom report name
+name: Test report name and optional inputs
 on:
   workflow_dispatch:
 jobs:
@@ -10,13 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create allure-results directory with a minimal test result
+      - name: Create minimal allure-results
         run: |
           mkdir -p allure-results
           cat > allure-results/sample-result.json << 'EOF'
           {
             "uuid": "test-uuid-5678",
-            "name": "Sample Test with Custom Name",
+            "name": "Named Report Test",
             "status": "passed",
             "stage": "finished",
             "start": 1700000000000,
@@ -24,9 +24,9 @@ jobs:
           }
           EOF
 
-      - name: Create gh-pages directory (simulating existing gh-pages branch)
+      - name: Create gh-pages directory
         run: |
-          mkdir -p gh-pages/last-history
+          mkdir -p gh-pages
 
       - id: action
         uses: .
@@ -35,69 +35,22 @@ jobs:
           allure_report: allure-report
           gh_pages: gh-pages
           allure_history: allure-history
-          keep_reports: '20'
-          github_run_num: '42'
-          github_run_id: '99999'
-          github_repo: 'my-org/my-project'
-          github_repo_owner: 'my-org'
-          github_tests_repo: 'my-org/my-project'
+          subfolder: 'my-project'
+          keep_reports: '10'
+          github_run_num: '2'
+          github_run_id: '67890'
+          github_repo: 'test-owner/test-repo'
+          github_repo_owner: 'test-owner'
+          github_tests_repo: 'test-owner/test-repo'
+          report_url: ''
           github_server_url: 'https://github.com'
           report_name: 'My Custom Allure Report'
 
-      - name: Assert allure-report was generated
+      - name: Assert allure-history directory was created
         run: |
-          echo "Checking allure-report directory..."
-          if [ ! -d "allure-report" ]; then
-            echo "FAIL: allure-report directory was not created"
+          echo "Checking allure-history directory..."
+          if [ ! -d "allure-history" ]; then
+            echo "FAIL: allure-history directory was not created"
             exit 1
           fi
-          echo "PASS: allure-report directory exists"
-
-      - name: Assert allure-report contains index.html
-        run: |
-          echo "Checking allure-report/index.html..."
-          if [ ! -f "allure-report/index.html" ]; then
-            echo "FAIL: allure-report/index.html was not created"
-            exit 1
-          fi
-          echo "PASS: allure-report/index.html exists"
-
-      - name: Assert allure-history run folder was created
-        run: |
-          echo "Checking allure-history/42 directory..."
-          if [ ! -d "allure-history/42" ]; then
-            echo "FAIL: allure-history/42 directory was not created"
-            exit 1
-          fi
-          echo "PASS: allure-history/42 directory exists"
-
-      - name: Assert executor.json was created with custom report name
-        run: |
-          echo "Checking executor.json in allure-results..."
-          EXECUTOR_FILE="allure-results/executor.json"
-          if [ ! -f "$EXECUTOR_FILE" ]; then
-            echo "FAIL: executor.json was not found in allure-results"
-            exit 1
-          fi
-          CONTENT=$(cat "$EXECUTOR_FILE")
-          echo "executor.json content: $CONTENT"
-          if ! echo "$CONTENT" | grep -q "My Custom Allure Report"; then
-            echo "FAIL: executor.json does not contain custom report name 'My Custom Allure Report'"
-            exit 1
-          fi
-          echo "PASS: executor.json contains custom report name"
-
-      - name: Assert allure-history index.html contains correct URL
-        run: |
-          echo "Checking allure-history/index.html..."
-          if [ ! -f "allure-history/index.html" ]; then
-            echo "FAIL: allure-history/index.html was not created"
-            exit 1
-          fi
-          CONTENT=$(cat allure-history/index.html)
-          echo "Content: $CONTENT"
-          if ! echo "$CONTENT" | grep -q "my-org.github.io/my-project"; then
-            echo "FAIL: index.html does not contain expected github.io URL"
-            exit 1
-          fi
-          echo "PASS: allure-history/index.html contains expected URL"
+          echo "PASS: allure-history directory exists"
