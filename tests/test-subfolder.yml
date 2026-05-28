@@ -1,4 +1,4 @@
-name: Test with report name
+name: Test with subfolder and custom report URL
 on:
   workflow_dispatch:
 jobs:
@@ -15,10 +15,10 @@ jobs:
           mkdir -p allure-results
           cat > allure-results/sample-result.json << 'EOF'
           {
-            "uuid": "test-uuid-5678",
-            "historyId": "test-history-id-2",
-            "name": "Sample Test With Report Name",
-            "status": "passed",
+            "uuid": "test-uuid-9999",
+            "historyId": "test-history-id-3",
+            "name": "Sample Test With Subfolder",
+            "status": "failed",
             "stage": "finished",
             "start": 1700000000000,
             "stop": 1700000001000
@@ -36,14 +36,16 @@ jobs:
           allure_report: allure-report
           gh_pages: gh-pages
           allure_history: allure-history
-          keep_reports: '20'
-          github_run_num: '2'
-          github_run_id: '987654321'
+          subfolder: 'my-project'
+          keep_reports: '10'
+          github_run_num: '3'
+          github_run_id: '111222333'
           github_repo: 'test-owner/test-repo'
           github_repo_owner: 'test-owner'
           github_tests_repo: 'test-owner/test-repo'
+          report_url: 'https://reports.example.com'
           github_server_url: 'https://github.com'
-          report_name: 'My Custom Allure Report'
+          report_name: 'Subfolder Report'
 
       - name: Assert allure-history directory was created
         run: |
