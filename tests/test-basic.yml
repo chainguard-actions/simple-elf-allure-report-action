@@ -1,29 +1,16 @@
-name: Test basic allure report generation
+name: Test basic usage
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create allure results directory with sample data
+      - name: Set up allure results directory
         run: |
           mkdir -p allure-results
-          cat > allure-results/sample-result.json << 'EOF'
-          {
-            "uuid": "test-uuid-1234",
-            "historyId": "test-history-id",
-            "name": "Sample Test",
-            "status": "passed",
-            "stage": "finished",
-            "start": 1700000000000,
-            "stop": 1700000001000
-          }
-          EOF
+          cp $GITHUB_WORKSPACE/actions/hardened/simple-elf--allure-report-action/v1.14/tests/fixtures/allure-results/* allure-results/
           mkdir -p gh-pages
 
       - id: action
@@ -35,13 +22,22 @@ jobs:
           allure_history: allure-history
           keep_reports: '20'
           github_run_num: '1'
-          github_run_id: '123456789'
+          github_run_id: '12345'
           github_repo: 'test-owner/test-repo'
           github_repo_owner: 'test-owner'
           github_tests_repo: 'test-owner/test-repo'
           github_server_url: 'https://github.com'
 
-      - name: Assert allure-history directory was created
+      - name: Assert allure report was generated
+        run: |
+          echo "Checking allure-report directory..."
+          if [ ! -d "allure-report" ]; then
+            echo "FAIL: allure-report directory was not created"
+            exit 1
+          fi
+          echo "PASS: allure-report directory exists"
+
+      - name: Assert allure history was created
         run: |
           echo "Checking allure-history directory..."
           if [ ! -d "allure-history" ]; then
@@ -50,11 +46,26 @@ jobs:
           fi
           echo "PASS: allure-history directory exists"
 
-      - name: Assert allure-report directory was created
+      - name: Assert report run number directory exists
         run: |
-          echo "Checking allure-report directory..."
-          if [ ! -d "allure-report" ]; then
-            echo "FAIL: allure-report directory was not created"
+          echo "Checking allure-history/1 directory..."
+          if [ ! -d "allure-history/1" ]; then
+            echo "FAIL: allure-history/1 directory was not created"
             exit 1
           fi
-          echo "PASS: allure-report directory exists"
+          echo "PASS: allure-history/1 directory exists"
+
+      - name: Assert index.html redirect was created
+        run: |
+          echo "Checking allure-history/index.html..."
+          if [ ! -f "allure-history/index.html" ]; then
+            echo "FAIL: allure-history/index.html was not created"
+            exit 1
+          fi
+          echo "Content of index.html:"
+          cat allure-history/index.html
+          if ! grep -q "test-owner.github.io/test-repo" allure-history/index.html; then
+            echo "FAIL: index.html does not contain expected GitHub Pages URL"
+            exit 1
+          fi
+          echo "PASS: index.html contains expected URL"

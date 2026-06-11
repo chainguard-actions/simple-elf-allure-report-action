@@ -1,0 +1,73 @@
+name: Test subfolder and report_url inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up allure results directory
+        run: |
+          mkdir -p allure-results
+          cp $GITHUB_WORKSPACE/actions/hardened/simple-elf--allure-report-action/v1.14/tests/fixtures/allure-results/* allure-results/
+          mkdir -p gh-pages
+
+      - id: action
+        uses: .
+        with:
+          allure_results: allure-results
+          allure_report: allure-report
+          gh_pages: gh-pages
+          allure_history: allure-history
+          subfolder: 'integration'
+          keep_reports: '5'
+          github_run_num: '7'
+          github_run_id: '77777'
+          github_repo: 'testorg/testrepo'
+          github_repo_owner: 'testorg'
+          github_tests_repo: 'testorg/testrepo'
+          report_url: 'https://reports.example.com'
+          github_server_url: 'https://github.com'
+          report_name: 'Integration Test Report'
+
+      - name: Assert allure report was generated
+        run: |
+          echo "Checking allure-report directory..."
+          if [ ! -d "allure-report" ]; then
+            echo "FAIL: allure-report directory was not created"
+            exit 1
+          fi
+          echo "PASS: allure-report directory exists"
+
+      - name: Assert subfolder history directory was created
+        run: |
+          echo "Checking allure-history/integration directory..."
+          if [ ! -d "allure-history/integration" ]; then
+            echo "FAIL: allure-history/integration subfolder was not created"
+            exit 1
+          fi
+          echo "PASS: allure-history/integration directory exists"
+
+      - name: Assert subfolder run directory was created
+        run: |
+          echo "Checking allure-history/integration/7 directory..."
+          if [ ! -d "allure-history/integration/7" ]; then
+            echo "FAIL: allure-history/integration/7 directory was not created"
+            exit 1
+          fi
+          echo "PASS: allure-history/integration/7 directory exists"
+
+      - name: Assert index.html uses custom report_url
+        run: |
+          echo "Checking allure-history/integration/index.html..."
+          if [ ! -f "allure-history/integration/index.html" ]; then
+            echo "FAIL: allure-history/integration/index.html was not created"
+            exit 1
+          fi
+          cat allure-history/integration/index.html
+          if ! grep -q "reports.example.com" allure-history/integration/index.html; then
+            echo "FAIL: index.html does not use custom report_url"
+            exit 1
+          fi
+          echo "PASS: index.html uses custom report_url"
